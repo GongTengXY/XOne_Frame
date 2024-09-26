@@ -1,9 +1,10 @@
 import path from "path";
 import { Configuration, DefinePlugin } from "webpack";
 import HtmlWebpackPlugin from "html-webpack-plugin";
+import Webpackbar from "webpackbar";
 import * as dotenv from "dotenv";
 
-const jsonRegex = /\.json$/;
+const tsxRegex = /.(ts|tsx)$/;
 const cssRegex = /\.css$/;
 const sassRegex = /\.(scss|sass)$/;
 const lessRegex = /\.less$/;
@@ -39,12 +40,18 @@ const baseConfig: Configuration = {
     publicPath: "/", // 打包后文件的公共前缀路径
     assetModuleFilename: "images/[name].[hash:8][ext]",
   },
+  // 开启持久化存储缓存
+  cache: {
+    type: "filesystem", // 使用文件缓存
+  },
   // loader 配置
   module: {
     rules: [
       {
-        test: /.(ts|tsx)$/,
+        test: tsxRegex,
+        exclude: /node_modules/, // 确保 babel-loader 不会处理 node_modules 目录中的ts、tsx文件
         use: "babel-loader",
+        // use: ["thread-loader","babel-loader"]  // 项目变大之后再开启多进程loader
       },
       {
         test: cssRegex,
@@ -148,6 +155,11 @@ const baseConfig: Configuration = {
       "process.env": JSON.stringify(envConfig.parsed),
       "process.env.BASE_ENV": JSON.stringify(process.env.BASE_ENV),
       "process.env.NODE_ENV": JSON.stringify(process.env.NODE_ENV),
+    }),
+    new Webpackbar({
+      color: "#85d", // 默认green，进度条颜色支持HEX
+      basic: false, // 默认true，启用一个简单的日志报告器
+      profile: false, // 默认false，启用探查器。
     }),
   ],
 };
